@@ -1,5 +1,4 @@
 rm(list = ls())
-
 setwd("/home/onyxia/formation-bonnes-pratiques-R")
 
 if (!require('ggplot2')) install.packages('ggplot2')

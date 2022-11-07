@@ -49,10 +49,10 @@ df2 %>%
   geom_histogram(aes(x = 5 * floor(as.numeric(aged) / 5)), stat = "count")
 
 ggplot(df2[as.numeric(df2$aged) > 50, c(3, 4)], aes(
-  x = as.numeric(aged),
+  x = as.numeric(aged), # x = as.numeric(aged) - as.numeric(aged) %% 5,
   y = ..density.., fill = factor(decennie_a_partir_annee(as.numeric(aemm)))
 ), alpha = 0.2) +
-  geom_histogram() 
+  geom_histogram() # position = "dodge") + scale_fill_viridis_d()
 
 
 

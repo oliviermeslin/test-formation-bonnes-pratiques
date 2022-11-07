@@ -13,6 +13,10 @@ if (!require("MASS")) install.packages("MASS")
 
 library(tidyverse)
 library(dplyr)
+library(stringr)
+library(ggplot2)
+library(forcats)
+library(MASS)
 
 
 # ===================== Importation des données =====================
@@ -117,7 +121,6 @@ df2[endsWith(df2$naf08, "Z"), "naf08"] <- NA
 str(df2)
 df2[, nrow(df2) - 1] <- factor(df2[, nrow(df2) - 1])
 df2$ur <- factor(df2$ur)
-library(forcats)
 df2$sexe <-
   fct_recode(df2$sexe, "Homme" = "0", "Femme" = "1")
 
@@ -158,7 +161,6 @@ api_pwd <- "trotskitueleski$1917"
 # ===================== Modéliser les données  =====================
 
 # modelisation
-library(MASS)
 df3 <- df2 %>%
   select(surf, cs1, ur, couple, aged) %>%
   filter(surf != "Z")

@@ -19,6 +19,33 @@ library(forcats)
 library(MASS)
 
 
+# ===================== Définir des fonctions =====================
+
+decennie_a_partir_annee <- function(ANNEE) {
+  return(ANNEE - ANNEE %%
+           10)
+}
+
+# fonction de stat agregee
+ignoreNA <- T
+fonction_de_stat_agregee <- function(a, b = "moyenne", ...) {
+  ignoreNA <<- !ignoreNA
+  checkvalue <- F
+  for (x in c("moyenne", "variance", "ecart-type", "sd", "ecart type")) {
+    checkvalue <- (checkvalue | b == x)
+  }
+  if (checkvalue == FALSE) stop("statistique non supportée")
+  
+  if (b == "moyenne") {
+    x <- mean(a, na.rm = ignoreNA, ...)
+  } else if (b == "ecart-type" | b == "sd" | b == "ecart type") {
+    x <- sd(b, na.rm = ignoreNA, ...)
+  } else if (a == "variance") {
+    x <- var(a, na.rm = ignoreNA, ...)
+  }
+  return(x)
+}
+
 # ===================== Importation des données =====================
 
 # j'importe les données avec read_csv2 parce que c'est un csv avec des ; et que read_csv attend comme separateur des ,
@@ -35,6 +62,39 @@ df2 <- df |>
   select(c("region", "dept", "aemm", "aged", "anai", "catl", "cs1", "cs2", "cs3", "couple", "na38", "naf08", "pnai12", "sexe", "surf", "tp", "trans", "ur"))
 print(df2, 20)
 
+
+# ===================== Retraiter les données  =====================
+# --------------------- Corriger les valeurs manquantes ---------------------
+
+
+df2[df2$na38 == "ZZ", "na38"] <- NA
+df2[df2$na38 == "Z", "trans"] <- NA
+df2[df2$tp == "Z", "tp"] <- NA
+df2[endsWith(df2$naf08, "Z"), "naf08"] <- NA
+
+# --------------------- Recoder des variables ---------------------
+
+str(df2)
+df2[, nrow(df2) - 1] <- factor(df2[, nrow(df2) - 1])
+df2$ur <- factor(df2$ur)
+df2$sexe <-
+  fct_recode(df2$sexe, "Homme" = "0", "Femme" = "1")
+
+
+fonction_de_stat_agregee(rnorm(10))
+fonction_de_stat_agregee(rnorm(10), "cart type")
+fonction_de_stat_agregee(rnorm(10), "ecart type")
+fonction_de_stat_agregee(rnorm(10), "variance")
+
+
+fonction_de_stat_agregee(df %>% filter(sexe == "Homme") %>% mutate(aged = as.numeric(aged)) %>% pull(aged), na.rm = T)
+fonction_de_stat_agregee(df2 %>% filter(sexe == "Femme") %>% mutate(aged = as.numeric(aged)) %>% pull(aged), na.rm = T)
+fonction_de_stat_agregee(df2 %>% filter(sexe == "Homme" & couple == "2") %>% mutate(aged = as.numeric(aged)) %>% pull(aged), na.rm = T)
+fonction_de_stat_agregee(df2 %>% filter(sexe == "Femme" & couple == "2") %>% mutate(aged = as.numeric(aged)) %>% pull(aged), na.rm = T)
+
+api_pwd <- "trotskitueleski$1917"
+
+
 # ===================== Statistiques descriptives =====================
 
 # combien de professions
@@ -48,12 +108,7 @@ print(summarise(df2, length(unique(unlist(cs3[!is.na(cs3)])))))
 print.data.frame <- summarise(group_by(df2, aged), n())
 print(print.data.frame)
 
-# ===================== Statistiques descriptives =====================
 
-decennie_a_partir_annee <- function(ANNEE) {
-  return(ANNEE - ANNEE %%
-    10)
-}
 
 # ===================== Faire des graphiques =====================
 
@@ -106,57 +161,6 @@ ggsave(p, "p.png")
 #
 #  )
 # }
-
-# ===================== Retraiter les données  =====================
-# --------------------- Corriger les valeurs manquantes ---------------------
-
-
-df2[df2$na38 == "ZZ", "na38"] <- NA
-df2[df2$na38 == "Z", "trans"] <- NA
-df2[df2$tp == "Z", "tp"] <- NA
-df2[endsWith(df2$naf08, "Z"), "naf08"] <- NA
-
-# --------------------- Recoder des variables ---------------------
-
-str(df2)
-df2[, nrow(df2) - 1] <- factor(df2[, nrow(df2) - 1])
-df2$ur <- factor(df2$ur)
-df2$sexe <-
-  fct_recode(df2$sexe, "Homme" = "0", "Femme" = "1")
-
-# --------------------- Définir une fonction ---------------------
-
-# fonction de stat agregee
-ignoreNA <- T
-fonction_de_stat_agregee <- function(a, b = "moyenne", ...) {
-  ignoreNA <<- !ignoreNA
-  checkvalue <- F
-  for (x in c("moyenne", "variance", "ecart-type", "sd", "ecart type")) {
-    checkvalue <- (checkvalue | b == x)
-  }
-  if (checkvalue == FALSE) stop("statistique non supportée")
-
-  if (b == "moyenne") {
-    x <- mean(a, na.rm = ignoreNA, ...)
-  } else if (b == "ecart-type" | b == "sd" | b == "ecart type") {
-    x <- sd(b, na.rm = ignoreNA, ...)
-  } else if (a == "variance") {
-    x <- var(a, na.rm = ignoreNA, ...)
-  }
-  return(x)
-}
-fonction_de_stat_agregee(rnorm(10))
-fonction_de_stat_agregee(rnorm(10), "cart type")
-fonction_de_stat_agregee(rnorm(10), "ecart type")
-fonction_de_stat_agregee(rnorm(10), "variance")
-
-
-fonction_de_stat_agregee(df %>% filter(sexe == "Homme") %>% mutate(aged = as.numeric(aged)) %>% pull(aged), na.rm = T)
-fonction_de_stat_agregee(df2 %>% filter(sexe == "Femme") %>% mutate(aged = as.numeric(aged)) %>% pull(aged), na.rm = T)
-fonction_de_stat_agregee(df2 %>% filter(sexe == "Homme" & couple == "2") %>% mutate(aged = as.numeric(aged)) %>% pull(aged), na.rm = T)
-fonction_de_stat_agregee(df2 %>% filter(sexe == "Femme" & couple == "2") %>% mutate(aged = as.numeric(aged)) %>% pull(aged), na.rm = T)
-
-api_pwd <- "trotskitueleski$1917"
 
 # ===================== Modéliser les données  =====================
 

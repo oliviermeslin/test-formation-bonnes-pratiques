@@ -1,5 +1,8 @@
+
+# ===================== Réglages ===================== 
+
 rm(list = ls())
-setwd("/home/onyxia/formation-bonnes-pratiques-R")
+# setwd("/home/onyxia/formation-bonnes-pratiques-R")
 
 if (!require("ggplot2")) install.packages("ggplot2")
 if (!require("stringr")) install.packages("stringr")
@@ -11,9 +14,12 @@ if (!require("MASS")) install.packages("MASS")
 library(tidyverse)
 library(dplyr)
 
+
+# ===================== Importation des données =====================
+
 # j'importe les données avec read_csv2 parce que c'est un csv avec des ; et que read_csv attend comme separateur des ,
 df <- readr::read_csv2(
-  "/home/onyxia/formation-bonnes-pratiques-R/individu_reg.csv",
+  "individu_reg.csv",
   col_names = c("region", "aemm", "aged", "anai", "catl", "cs1", "cs2", "cs3", "couple", "na38", "naf08", "pnai12", "sexe", "surf", "tp", "trans", "ur")
 )
 
@@ -25,6 +31,7 @@ df2 <- df |>
   select(c("region", "dept", "aemm", "aged", "anai", "catl", "cs1", "cs2", "cs3", "couple", "na38", "naf08", "pnai12", "sexe", "surf", "tp", "trans", "ur"))
 print(df2, 20)
 
+# ===================== Statistiques descriptives =====================
 
 # combien de professions
 print("Nombre de professions :")
@@ -37,11 +44,14 @@ print(summarise(df2, length(unique(unlist(cs3[!is.na(cs3)])))))
 print.data.frame <- summarise(group_by(df2, aged), n())
 print(print.data.frame)
 
+# ===================== Statistiques descriptives =====================
+
 decennie_a_partir_annee <- function(ANNEE) {
   return(ANNEE - ANNEE %%
     10)
 }
 
+# ===================== Faire des graphiques =====================
 
 df2 %>%
   select(aged) %>%
@@ -92,10 +102,17 @@ ggsave(p, "p.png")
 #
 #  )
 # }
+
+# ===================== Retraiter les données  =====================
+# --------------------- Corriger les valeurs manquantes ---------------------
+
+
 df2[df2$na38 == "ZZ", "na38"] <- NA
 df2[df2$na38 == "Z", "trans"] <- NA
 df2[df2$tp == "Z", "tp"] <- NA
 df2[endsWith(df2$naf08, "Z"), "naf08"] <- NA
+
+# --------------------- Recoder des variables ---------------------
 
 str(df2)
 df2[, nrow(df2) - 1] <- factor(df2[, nrow(df2) - 1])
@@ -103,6 +120,8 @@ df2$ur <- factor(df2$ur)
 library(forcats)
 df2$sexe <-
   fct_recode(df2$sexe, "Homme" = "0", "Femme" = "1")
+
+# --------------------- Définir une fonction ---------------------
 
 # fonction de stat agregee
 ignoreNA <- T
@@ -135,6 +154,8 @@ fonction_de_stat_agregee(df2 %>% filter(sexe == "Homme" & couple == "2") %>% mut
 fonction_de_stat_agregee(df2 %>% filter(sexe == "Femme" & couple == "2") %>% mutate(aged = as.numeric(aged)) %>% pull(aged), na.rm = T)
 
 api_pwd <- "trotskitueleski$1917"
+
+# ===================== Modéliser les données  =====================
 
 # modelisation
 library(MASS)
